@@ -74,7 +74,7 @@ public_users.get('/review/:isbn',function (req, res) {
   if(isbnForReview) {
     res.send(books[isbnForReview].reviews);
   } else {
-    res.status(4034.json({message: "No reviews for this isbn code."})04)
+    res.status(403).json({message : "No reviews for this book."})
   }
 });
 
