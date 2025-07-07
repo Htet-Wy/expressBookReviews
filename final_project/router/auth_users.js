@@ -36,7 +36,7 @@ if (authenticatedUser(username, password)) {
     let accessToken = jwt.sign({
         data: password
     }, 'access', { expiresIn: 60 * 60 });
-    
+
     req.session.authorization = {
         accessToken, username
     }
@@ -49,7 +49,41 @@ if (authenticatedUser(username, password)) {
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
   //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+  const isbn = req.params.isbn;
+  const review = req.query.review;
+  const book = books[isbn];
+  if (!book) {
+    return res.status(404).json({ message: "Book not found." });
+  }
+
+  if (!review) {
+    return res.status(400).json({ message: "Review query is required." });
+  }
+
+  const session = req.session.authorization;
+
+  if (!session || !session.accessToken || !session.username) {
+    return res.status(401).json({ message: "User not authenticated." });
+  }
+
+  const token = session.accessToken;
+  const username = session.username;
+
+  // Verify token
+  try {
+    jwt.verify(token, 'access');
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid or expired token." });
+  }
+
+  if (!book.reviews) {
+    book.reviews = {};
+  }
+
+  // Add or update review
+  books[isbn].reviews[username] = review;
+
+  return res.status(200).json({ message: "Review posted/updated successfully." });
 });
 
 module.exports.authenticated = regd_users;
